@@ -67,6 +67,7 @@ function report(main = "main", dir, ext, parse) {
     };
   } else {
     console.log("\033[4m\x1b[1mAll terms check.\x1b[0m");
+    process.exit(0);
   };
 
   if (defs[main]) {
