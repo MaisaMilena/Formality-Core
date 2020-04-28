@@ -232,7 +232,7 @@ function parse_all(code, indx, vars, err = false) {
     chain(parse_one(code, indx, "(", "<", false),                    (indx, eras) =>
     chain(parse_nam(code, next(code, indx), 1, false),               (indx, name) =>
     chain(parse_txt(code, next(code, indx), ":", false),             (indx, skip) =>
-    chain(parse_term(code, indx, push(self, vars), err),             (indx, bind) =>
+    chain(parse_term(code, indx, vars, err),                         (indx, bind) =>
     chain(parse_txt(code, next(code, indx), eras ? ">" : ")", err),  (indx, skip) =>
     chain(parse_txt(code, next(code, indx), "->", err),              (indx, skip) =>
     chain(parse_term(code, indx, push(name, push(self, vars)), err), (indx, body) =>
@@ -519,7 +519,7 @@ function stringify_term(term, vars = Nil()) {
       case "Var":
         var got = find(vars, (x,i) => i === term.indx);
         if (got) {
-          return got.value.name;
+          return got.value.name + "#" + term.indx;
         } else {
           return "#" + term.indx;
         };
@@ -532,7 +532,7 @@ function stringify_term(term, vars = Nil()) {
         var lpar = term.name === "" ? "" : (term.eras ? "<" : "(");
         var name = term.name;
         var colo = term.name === "" ? "" : ": ";
-        var bind = stringify_term(term.bind, push({name:self}, vars));
+        var bind = stringify_term(term.bind, vars);
         var rpar = term.name === "" ? "" : (term.eras ? ">" : ")");
         var body = stringify_term(term.body, push({name:name}, push({name:self}, vars)));
         return self+lpar+name+colo+bind+rpar+" -> "+body;
@@ -611,7 +611,7 @@ function to_high(term, vars = Nil()) {
       var eras = term.eras;
       var self = term.self;
       var name = term.name;
-      var bind = s => to_high(term.bind, push(s, vars));
+      var bind = to_high(term.bind, vars);
       var body = (s,x) => to_high(term.body, push(x, push(s, vars)));
       return All(eras, self, name, bind, body, locs);
     case "Lam":
@@ -656,7 +656,7 @@ function to_low(term, depth = 0) {
       var eras = term.eras;
       var self = term.self;
       var name = term.name;
-      var bind = to_low(term.bind(Var(depth)), depth + 1);
+      var bind = to_low(term.bind, depth);
       var body = to_low(term.body(Var(depth), Var(depth+1)), depth + 2);
       var locs = term.locs;
       return All(eras, self, name, bind, body, locs);
@@ -757,7 +757,7 @@ function normalize_high(term, defs) {
       var eras = norm.eras;
       var self = norm.self;
       var name = norm.name;
-      var bind = s => normalize_high(norm.bind(s), defs);
+      var bind = normalize_high(norm.bind, defs);
       var body = (s,x) => normalize_high(norm.body(s,x), defs);
       var locs = norm.locs;
       return All(eras, self, name, bind, body, locs);
@@ -805,8 +805,8 @@ function hash(term, dep = 0) {
     case "Typ":
       return "Type";
     case "All":
-      var bind = hash(term.bind(Var(dep)),dep+1);
-      var body = hash(term.body(Var(dep),Var(dep+1)), dep+2);
+      var bind = hash(term.bind, dep);
+      var body = hash(term.body(Var(dep), Var(dep+1)), dep+2);
       return "∀" + bind + body;
     case "Lam":
       var body = hash(term.body(Var(dep)), dep+1);
@@ -844,11 +844,11 @@ function equal(a, b, defs, dep = 0) {
         case "AllAll":
           if (a1.eras !== b1.eras) return [false,a1,b1];
           if (a1.self !== b1.self) return [false,a1,b1];
-          var a1_bind = a1.bind(Var(dep));
-          var b1_bind = b1.bind(Var(dep));
+          var a1_bind = a1.bind;
+          var b1_bind = b1.bind;
           var a1_body = a1.body(Var(dep), Var(dep+1));
           var b1_body = b1.body(Var(dep), Var(dep+1));
-          vis.push([a1_bind, b1_bind, dep+1]);
+          vis.push([a1_bind, b1_bind, dep]);
           vis.push([a1_body, b1_body, dep+2]);
           break;
         case "LamLam":
@@ -964,8 +964,8 @@ function typeinfer_high(term, defs, ctx = Nil()) {
       switch (func_typ.ctor) {
         case "All":
           var self_var = Ann(true, term.func, func_typ);
-          var name_var = Ann(true, term.argm, func_typ.bind(self_var));
-          typecheck_high(term.argm, func_typ.bind(self_var), defs, ctx);
+          var name_var = Ann(true, term.argm, func_typ.bind);
+          typecheck_high(term.argm, func_typ.bind, defs, ctx);
           var term_typ = func_typ.body(self_var, name_var);
           if (func_typ.ctor === "All" && term.eras !== func_typ.eras) {
             throw Err(term.locs, ctx, "Mismatched erasure.");
@@ -984,11 +984,10 @@ function typeinfer_high(term, defs, ctx = Nil()) {
       return body_typ;
     case "All":
       var self_var = Ann(true, Var(ctx.length), term);
-      var name_var = Ann(true, Var(ctx.length+1), term.bind(self_var));
-      var bind_ctx = push({name:term.self,type:self_var.type}, ctx);
+      var name_var = Ann(true, Var(ctx.length+1), term.bind);
       var body_ctx = push({name:term.self,type:self_var.type}, ctx);
       var body_ctx = push({name:term.name,type:name_var.type}, body_ctx);
-      typecheck_high(term.bind(self_var), Typ(), defs, bind_ctx);
+      typecheck_high(term.bind, Typ(), defs, ctx);
       typecheck_high(term.body(self_var,name_var), Typ(), defs, body_ctx);
       return Typ();
     case "Ann":
@@ -1010,8 +1009,7 @@ function typecheck_high(term, type, defs, ctx = Nil()) {
     case "Lam":
       if (typv.ctor === "All") {
         var self_var = Ann(true, term, type);
-        var bind_typ = typv.bind(self_var);
-        var name_var = Ann(true, Var(ctx.length), bind_typ);
+        var name_var = Ann(true, Var(ctx.length+1), typv.bind);
         var body_typ = typv.body(self_var, name_var);
         if (term.eras !== typv.eras) {
           throw Err(term.locs, ctx, "Type mismatch.");
