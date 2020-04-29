@@ -30,6 +30,7 @@ function load(dir = ".", ext = ".fmc", parse_defs = fmc.parse_defs, must_throw_e
       for (var name in file_defs) {
         if (result.defs[name]) {
           console.log("Redefinition of '" + name + "' in '" + file + "'.");
+          console.log("env: ", process.argv);
           if (must_throw_error){
             process.exit(1);
           } else {
