@@ -86,12 +86,9 @@ function report(main = "main", dir, ext, parse) {
 
 function js(main = "main", dir, ext, parse) {
   var {defs} = load(dir, ext, parse);
-  var exit_code = main === "--github" ? 1 : 0;
+  var exit_code = process.argv[3] === "--github" ? 1 : 0;
   if (!defs[main]) {
     const msg = "Term '" + main + "' not found.";
-    console.log("Args: ", process.argv);
-    console.log("Arg3: ", process.argv[3]);
-    // console.log("Term '" + main + "' not found.");
     error(msg, exit_code);
   } else {
     console.log(cmp.js(defs, main));
@@ -100,9 +97,8 @@ function js(main = "main", dir, ext, parse) {
 
 function hs(main = "main", dir, ext, parse) {
   var {defs} = load(dir, ext, parse);
-  var exit_code = main === "--github" ? 1 : 0;
+  var exit_code = process.argv[3] === "--github" ? 1 : 0;
   if (!defs[main]) {
-    // console.log("Term '" + main + "' not found.");
     const msg = "Term '" + main + "' not found.";
     error(msg, exit_code);
   } else {
@@ -112,9 +108,8 @@ function hs(main = "main", dir, ext, parse) {
 
 function run(main = "main", dir, ext, parse) {
   var {defs} = load(dir, ext, parse);
-  var exit_code = main === "--github" ? 1 : 0;
+  var exit_code = process.argv[3] === "--github" ? 1 : 0;
   if (!defs[main]) {
-    // console.log("Term '" + main + "' not found.");
     const msg = "Term '" + main + "' not found.";
     error(msg, exit_code);
   } else {
