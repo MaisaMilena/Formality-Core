@@ -89,6 +89,8 @@ function js(main = "main", dir, ext, parse) {
   var exit_code = main === "--github" ? 1 : 0;
   if (!defs[main]) {
     const msg = "Term '" + main + "' not found.";
+    console.log("Args: ", process.argv);
+    console.log("Arg3: ", process.argv[3]);
     // console.log("Term '" + main + "' not found.");
     error(msg, exit_code);
   } else {
