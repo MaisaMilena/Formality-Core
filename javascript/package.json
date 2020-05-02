@@ -1,7 +1,7 @@
 {
-  "name": "t-check-test",
-  "version": "0.0.11",
-  "description": "testing Github actions",
+  "name": "formality-core",
+  "version": "0.2.61",
+  "description": "Formality language, temporary package for the next version",
   "main": "FormalityCore.js",
   "bin": {
     "fmc": "bin/fmc.js",
