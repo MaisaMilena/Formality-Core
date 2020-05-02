@@ -1,6 +1,6 @@
 {
   "name": "t-check-test",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "testing Github actions",
   "main": "FormalityCore.js",
   "bin": {
