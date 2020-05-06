@@ -89,15 +89,12 @@ function js(main = "main", dir, ext, parse) {
   var {defs} = load(dir, ext, parse);
   var exit_code = process.argv[3] === "--github" ? 1 : 0;
   if (!defs[main]) {
-<<<<<<< refs/remotes/origin/master
     const msg = "Term '" + main + "' not found.";
-    console.log("exit_code: ", exit_code);
-    // error(msg, exit_code);
-    process.exit(1);
-=======
-    console.log("Term '" + main + "' not found.");
   } else {
-    console.log(fm.comp.js(defs, main));
+    const content = fm.comp.js(defs, main);
+    var file_path = path.join(dir, "moonad.js");
+    console.log(content);
+    fs.writeFileSync(file_path, content);
   };
 };
 
@@ -105,10 +102,6 @@ function hs(main = "main", dir, ext, parse) {
   var {defs} = load(dir, ext, parse);
   var exit_code = process.argv[3] === "--github" ? 1 : 0;
   if (!defs[main]) {
-<<<<<<< refs/remotes/origin/master
-    const msg = "Term '" + main + "' not found.";
-    error(msg, exit_code);
-=======
     console.log("Term '" + main + "' not found.");
   } else {
     console.log(fm.comp.hs(defs, main));
@@ -119,10 +112,6 @@ function run(main = "main", dir, ext, parse) {
   var {defs} = load(dir, ext, parse);
   var exit_code = process.argv[3] === "--github" ? 1 : 0;
   if (!defs[main]) {
-<<<<<<< refs/remotes/origin/master
-    const msg = "Term '" + main + "' not found.";
-    error(msg, exit_code);
-=======
     console.log("Term '" + main + "' not found.");
   } else {
     eval(fm.comp.js(defs, main));

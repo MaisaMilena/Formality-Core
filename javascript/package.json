@@ -1,7 +1,7 @@
 {
-  "name": "formality-core",
-  "version": "0.2.71",
-  "description": "Formality language, temporary package for the next version",
+  "name": "t-check-test",
+  "version": "0.2.0",
+  "description": "My own Formality-Core",
   "main": "Formality.js",
   "bin": {
     "fmc": "bin/fmc.js",
